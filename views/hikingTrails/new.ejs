@@ -2,39 +2,39 @@
     <link rel="stylesheet" href="/stylesheets/images.css" class="rel">
 
     <div class="row">
-        <h1 class="text-center">New Campground</h1>
+        <h1 class="text-center">New Hiking Trail</h1>
         <div class="col-md-6 offset-md-3">
             <!-- keep all fields required, and set the form to novalidate, then bootstrap can take care of it -->
-            <form action="/campgrounds" method="POST" novalidate class="validated-form" enctype="multipart/form-data">
+            <form action="/hikingTrails" method="POST" novalidate class="validated-form" enctype="multipart/form-data">
                 <div class="mb-3">
                     <label class="form-label" for="title">Title: </label>
-                    <!-- name="campoground[title]" helps to group info -->
-                    <input class="form-control" type="text" id="title" name="campground[title]" required>
+                    <!-- name="hikingTrail[title]" helps to group info -->
+                    <input class="form-control" type="text" id="title" name="hikingTrail[title]" required>
                     <div class="valid-feedback">Looks good!</div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label" for="location">Location: </label>
-                    <input class="form-control" type="text" name="campground[location]" id="location" required>
+                    <input class="form-control" type="text" name="hikingTrail[location]" id="location" required>
                     <div class="valid-feedback">Looks good!</div>
                 </div>
                 <!-- <div class="mb-3">
                     <label class="form-label" for="image">Image URL: </label>
-                    <input class="form-control" type="text" name="campground[image]" id="image" placeholder="image url"
+                    <input class="form-control" type="text" name="hikingTrail[image]" id="image" placeholder="image url"
                         required>
                     <div class="valid-feedback">Looks good!</div>
                 </div> -->
                 <div class="mb-3">
-                    <label class="form-label" for="price">Price: </label>
+                    <label class="form-label" for="length">Length: </label>
                     <div class="input-group">
-                        <span class="input-group-text" id="price-label">$</span>
-                        <input class="form-control" type="text" name="campground[price]" id="price" placeholder="0.00"
-                            aria-label="price" aria-describedby="price-label" required>
+                        <input class="form-control" type="text" name="hikingTrail[length]" id="length" placeholder="0"
+                            aria-label="length" aria-describedby="length-label" required>
+                        <span class="input-group-text" id="length-label">Miles</span>
                         <div class="valid-feedback">Looks good!</div>
                     </div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label" for="description">Description: </label>
-                    <textarea class="form-control" type="text" name="campground[description]" id="description"
+                    <textarea class="form-control" type="text" name="hikingTrail[description]" id="description"
                         required></textarea>
                     <div class="valid-feedback">Looks good!</div>
                 </div>
@@ -49,10 +49,10 @@
                     </div>
                 </div>
                 <div class="mb-3">
-                    <button class="btn btn-success">Add campground</button>
+                    <button class="btn btn-success">Add hiking trail</button>
                 </div>
 
             </form>
-            <a href="/campgrounds">Back</a>
+            <a href="/hikingTrails">Back</a>
         </div>
     </div>

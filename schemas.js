@@ -29,10 +29,10 @@ const Joi = BaseJoi.extend(extension);
 
 // define a schema using Joi
 // use excapeHTML anytime there is text
-module.exports.campgroundSchema = Joi.object({
-    campground: Joi.object({
+module.exports.hikingTrailSchema = Joi.object({
+    hikingTrail: Joi.object({
         title: Joi.string().required().escapeHTML(),
-        price: Joi.number().required().min(0),
+        length: Joi.number().required().min(0),
         // image: Joi.string().required(),
         location: Joi.string().required().escapeHTML(),
         description: Joi.string().required().escapeHTML()

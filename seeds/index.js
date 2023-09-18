@@ -1,9 +1,13 @@
-const mongoose = require('mongoose');
-const Campground = require('../models/campground');
-const cities = require('./cities');
-const { places, descriptors } = require('./seedHelpers');
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+}
 
-mongoose.connect('mongodb://127.0.0.1:27017/yelp-camp')
+const mongoose = require('mongoose');
+const HikingTrail = require('../models/hikingTrail');
+const cities = require('./cities');
+const { places, descriptors, keys } = require('./seedHelpers');
+
+mongoose.connect(process.env.DB_URL || 'mongodb://127.0.0.1:27017/hiking-usa')
     .then(() => {
         console.log('Mongo Connection Open');
     })
@@ -16,28 +20,31 @@ mongoose.set('strictQuery', true);
 const sample = (array) => array[Math.floor(Math.random() * array.length)];
 
 const seedDB = async () => {
-    await Campground.deleteMany({});
-    for (let i = 0; i < 200; i++) {
+    await HikingTrail.deleteMany({});
+    for (let i = 0; i < 50; i++) {
         const random1000 = Math.floor(Math.random() * 1000);
-        const price = Math.floor(Math.random() * 20) + 10;
-        const camp = new Campground({
+        const length = Math.floor(Math.random() * 30) + 2;
+        const key1 = sample(keys);
+        const key2 = sample(keys);
+        const key3 = sample(keys);
+        const hikingTrail = new HikingTrail({
             // YOUR USER ID
-            author: '64ea41781bab9ed55617bc50',
+            author: '64ef6d3f8a2643e0289df915',
             location: `${cities[random1000].city}, ${cities[random1000].state}`,
             title: `${sample(descriptors)} ${sample(places)}`,
             images: [
-                { url: 'https://res.cloudinary.com/dircon6p3/image/upload/v1693191943/YelpCamp/IMG_6604_ljuvfq.jpg', filename: 'IMG_6604_ljuvfq' },
-                { url: 'https://res.cloudinary.com/dircon6p3/image/upload/v1693191942/YelpCamp/Fxcd7ONaUAU1o-j_ixxktk.jpg', filename: 'Fxcd7ONaUAU1o-j_ixxktk' },
-                { url: 'https://res.cloudinary.com/dircon6p3/image/upload/v1693191941/YelpCamp/Fwep6TRacAEEiWs_mbxpmp.jpg', filename: 'Fwep6TRacAEEiWs_mbxpmp' }
+                { filename: `${process.env.S3_BUCKET_NAME}_${key1}`, key: key1 },
+                { filename: `${process.env.S3_BUCKET_NAME}_${key2}`, key: key2 },
+                { filename: `${process.env.S3_BUCKET_NAME}_${key3}`, key: key3 }
             ],
             description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Excepturi nostrum ex perspiciatis quos aperiam laborum aliquid in optio architecto, maxime obcaecati nisi quis assumenda? Iste vero iusto optio maxime necessitatibus?',
-            price: price,
+            length: length,
             geometry: {
                 type: 'Point',
                 coordinates: [cities[random1000].longitude, cities[random1000].latitude]
             }
         });
-        await camp.save();
+        await hikingTrail.save();
     };
 
 };

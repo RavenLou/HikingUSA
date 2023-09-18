@@ -1,13 +1,13 @@
-const Campground = require('./models/campground');
+const HikingTrail = require('./models/hikingTrail');
 const Review = require('./models/review');
-const { campgroundSchema, reviewSchema } = require('./schemas');
+const { hikingTrailSchema, reviewSchema } = require('./schemas');
 const ExpressError = require('./utils/ExpressError');
 
 module.exports.isLoggedIn = (req, res, next) => {
     // passport provides you with the middleware to check if you are signed in in req
     if (!req.isAuthenticated()) {
         req.session.returnTo = req.originalUrl;
-        req.flash('error', 'You must be signed in to create a new campground!');
+        req.flash('error', 'You must be signed in to add a new trail!');
         return res.redirect('/login');
     };
     next();
@@ -20,12 +20,12 @@ module.exports.storeReturnTo = (req, res, next) => {
     next();
 }
 
-module.exports.isCampgroundAuthor = async (req, res, next) => {
+module.exports.isHikingTrailAuthor = async (req, res, next) => {
     const { id } = req.params;
-    const campground = await Campground.findById(id);
-    if (!campground.author.equals(req.user._id)) {
+    const hikingTrail = await HikingTrail.findById(id);
+    if (!hikingTrail.author.equals(req.user._id)) {
         req.flash('error', 'You do not have permission to do that!');
-        return res.redirect(`/campgrounds/${id}`)
+        return res.redirect(`/hikingTrail/${id}`)
     }
     next();
 };
@@ -35,14 +35,15 @@ module.exports.isReviewAuthor = async (req, res, next) => {
     const review = await Review.findById(reviewId);
     if (!review.author.equals(req.user._id)) {
         req.flash('error', 'You do not have permission to do that!');
-        return res.redirect(`/campgrounds/${id}`)
+        return res.redirect(`/hikingTrail/${id}`)
     }
     next();
 };
 
-module.exports.validateCampground = (req, res, next) => {
+module.exports.validateHikingTrail = (req, res, next) => {
     // pass in the body to validate it
-    const { error } = campgroundSchema.validate(req.body);
+    console.log(req.body)
+    const { error } = hikingTrailSchema.validate(req.body);
     if (error) {
         const msg = error.details.map(ele => ele.message).join(',');
         throw new ExpressError(msg, 400);

@@ -12,11 +12,13 @@ const session = require('express-session');
 const flash = require('connect-flash')
 const methodOverride = require('method-override');
 const ExpressError = require('./utils/ExpressError');
-const campgroundsRouter = require('./routes/campgrounds');
+const hikingTrailsRouter = require('./routes/hikingTrails');
 const reviewsRouter = require('./routes/reviews');
-const userRouter = require('./routes/users');
+const usersRouter = require('./routes/users');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
+const FacebookStrategy = require('passport-facebook').Strategy;
+const GoogleSrategy = require('passport-google-oauth').OAuth2Strategy;
 const User = require('./models/user');
 const MongoDBStore = require('connect-mongo')(session);
 // this will help filter query strings with security issues
@@ -24,9 +26,11 @@ const MongoDBStore = require('connect-mongo')(session);
 const mongoSanitize = require('express-mongo-sanitize');
 // for security purpose
 const helmet = require('helmet');
+const { downloadImg } = require('./s3/index');
 
 // connecting to mongo db
-const dbUrl = process.env.DB_URL || 'mongodb://127.0.0.1:27017/yelp-camp'
+// process.env.DB_URL ||
+const dbUrl = process.env.DB_URL || 'mongodb://127.0.0.1:27017/hiking-usa'
 mongoose.connect(dbUrl)
     .then(() => {
         console.log('Mongo Connection Open');
@@ -60,7 +64,7 @@ const store = new MongoDBStore({
     touchAfter: 24 * 60 * 60
 });
 
-store.on('error', function(e) {
+store.on('error', function (e) {
     console.log('SESSION STORE ERROR', e);
 });
 
@@ -80,7 +84,7 @@ const sessionConfig = {
         // this is the same thing
         maxAge: 1000 * 60 * 60 * 24 * 7,
         // this is for security purpose. Only http requests can access the cookies
-        httpOnly: true  
+        httpOnly: true
 
         // use this line when deploying (when testing, comment it out   )
         // secure: true
@@ -142,8 +146,52 @@ app.use(passport.session());
 // authenticate is a method automatically added to User by passport
 passport.use(new LocalStrategy(User.authenticate()));
 // tell passport how to store/unstore user
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
+//passport.serializeUser(User.serializeUser());
+//passport.deserializeUser(User.deserializeUser());
+passport.serializeUser(function (user, cb) {
+    cb(null, user);
+});
+passport.deserializeUser(function (obj, cb) {
+    cb(null, obj);
+});
+
+// facebook auth
+passport.use(new FacebookStrategy({
+    clientID: process.env.FB_CLIENT_ID,
+    clientSecret: process.env.FB_CLIENT_SECRET,
+    callbackURL: process.env.FB_CALLBACK_URL,
+    profileFields: ['id', 'displayName', 'email']
+  },
+  async function(accessToken, refreshToken, profile, cb) {
+    const user = await User.findOne({username: profile.displayName, email: profile.id});
+    if (!user) {
+        const newUser = new User({
+            username: profile.displayName, 
+            email: profile.id
+        });
+        await newUser.save();
+    }
+    return cb(null, user);
+  }
+));
+
+//google auth
+passport.use(new GoogleSrategy({
+    clientID: process.env.GG_CLIENT_ID,
+    clientSecret: process.env.GG_CLIENT_SECRET,
+    callbackURL: process.env.GG_CALLBACK_URL
+}, async function(accessToken, refreshToken, profile, cb) {
+    const user = await User.findOne({username: profile.displayName, email: profile.emails[0].value});
+    if (!user) {
+        const newUser = new User({
+            username: profile.displayName, 
+            email: profile.emails[0].value
+        });
+        await newUser.save();
+    }
+    return cb(null, user);
+  }));
+
 
 app.use((req, res, next) => {
     // these can be accessed in ejs templates
@@ -154,13 +202,18 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use('/', userRouter);
-app.use('/campgrounds', campgroundsRouter);
-app.use('/campgrounds/:id/reviews', reviewsRouter);
+app.use('/', usersRouter);
+app.use('/hikingTrails', hikingTrailsRouter);
+app.use('/hikingTrails/:id/reviews', reviewsRouter);
 
 app.get('/', (req, res) => {
     res.render('home');
 });
+
+app.get('/images/:key', (req, res) => {
+    const { key } = req.params;
+    downloadImg(key).pipe(res);
+})
 
 // for every request, for every path
 // this will catch errors that are not caught in previous routes

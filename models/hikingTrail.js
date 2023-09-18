@@ -1,11 +1,10 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const Review = require('./review');
-const { campgroundSchema } = require('../schemas');
 
 const ImageSchema = new Schema({
-    url: String,
-    filename: String
+    filename: String,
+    key: String
 })
 
 ImageSchema.virtual('thumbnail').get(function () {
@@ -15,10 +14,10 @@ ImageSchema.virtual('thumbnail').get(function () {
 // if not set, will not stringify virtual properties in html
 const opts = { toJSON: { virtuals: true } };
 
-const CampgroundSchema = new Schema({
+const HikingTrailSchema = new Schema({
     title: String,
     images: [ImageSchema],
-    price: Number,
+    length: Number,
     description: String,
     location: String,
     geometry: {
@@ -44,17 +43,17 @@ const CampgroundSchema = new Schema({
     ]
 }, opts);
 
-CampgroundSchema.virtual('properties.popupMarkup').get(function () {
+HikingTrailSchema.virtual('properties.popupMarkup').get(function () {
     return `
-    <strong><a href="/campgrounds/${this._id}">${this.title}</a><strong>
+    <strong><a href="/hikingTrails/${this._id}">${this.title}</a><strong>
     <p>${this.description.substr(0, 50)}...</p>
     `;
 });
 
-CampgroundSchema.post('findOneAndDelete', async function (data) {
+HikingTrailSchema.post('findOneAndDelete', async function (data) {
     if (data.reviews.length) {
         await Review.deleteMany({ _id: { $in: data.reviews } });
     };
 });
 
-module.exports = mongoose.model('Campground', CampgroundSchema);
+module.exports = mongoose.model('HikingTrail', HikingTrailSchema);
